@@ -1,0 +1,36 @@
+providers:
+  stt:
+    primary: "gemini"
+    gemini:
+      api_key_env: "GEMINI_API_KEY"
+      model: "gemini-2.5-flash"
+      endpoint: "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+      timeout_seconds: 20
+      max_retries: 2
+
+  processing:
+    primary: "opencode"
+    fallback_order:
+      - "opencode"
+      - "gemini"
+    opencode:
+      endpoint: "http://localhost:3000/api/v1/chat/completions"
+      models:
+        - "opencode/deepseek-v4-flash-free"
+        - "opencode/mimo-v2.5-free"
+        - "opencode/qwen3.6-plus-free"
+      timeout_seconds: 30
+      max_retries: 2
+    gemini:
+      api_key_env: "GEMINI_API_KEY"
+      model: "gemini-2.5-flash"
+      endpoint: "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+      timeout_seconds: 30
+      max_retries: 2
+
+  rabbitmq:
+    host: "chappie-rabbitmq"
+    port: 5672
+    username_env: "RABBITMQ_USER"
+    password_env: "RABBITMQ_PASSWORD"
+    virtual_host: "/"

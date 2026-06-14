@@ -2,7 +2,7 @@
 
 **Incremento:** initial-setup  
 **Proyecto:** `projects/chappie-n8n-workflows/`  
-**Lifecycle status:** `awaiting-human-plan-approval`  
+**Lifecycle status:** `validated-not-executed`  
 **Creado:** 2026-06-14  
 **Ultima actualizacion:** 2026-06-14 (post-remediacion F-001, F-005, F-006, F-007)  
 
@@ -10,7 +10,7 @@
 
 ## Current status
 
-**Estado del incremento:** `awaiting-human-plan-approval`
+**Estado del incremento:** `validated-not-executed`
 
 La Master Spec del proyecto `chappie-n8n-workflows` fue revisada por Spec Validator (segunda ronda). **Todos los 7 findings fueron resueltos correctamente:**
 
@@ -187,12 +187,14 @@ Los siguientes terminos estan PROHIBIDOS en este proyecto porque no corresponden
 
 ## Next action
 
-**Acción requerida:** Awaiting Human Plan Approval
+**Acción requerida:** Executor comienza implementación
 
-**Estado:** Spec Validator ha otorgado `verdict: ready`. Todos los 7 findings resueltos correctamente.
+**Estado:** Task Board creado por Task Decomposer. 10 tareas atómicas definidas en `docs/specs/tasks/initial-setup-task-board.md`.
 
-**Transición prohibida:** No avanzar a Task Decomposer ni Executor hasta obtener `## Human Plan Approval: approved_by_user`.
+**Task Board:** `/home/cristiansrc/Documentos/Proyectos/chappie-workspace/projects/chappie-n8n-workflows/docs/specs/tasks/initial-setup-task-board.md`
+
+**Transición permitida:** Executor puede comenzar con TASK-001 (Crear estructura de directorios y archivos JSON vacíos).
 
 ---
 
-## Human Plan Approval: pending
+## Human Plan Approval: approved_by_user
