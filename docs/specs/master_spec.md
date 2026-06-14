@@ -1,6 +1,6 @@
 # Master Spec - chappie-n8n-workflows
 
-**Lifecycle status:** `awaiting-human-plan-approval`  
+**Lifecycle status:** `Active`  
 **Owner:** Planner  
 **Proyecto:** `projects/chappie-n8n-workflows/`  
 **Bounded Contexts:** Orchestration, Memory  
@@ -737,4 +737,4 @@ Los siguientes terminos NO deben usarse en tareas ni implementacion:
 ---
 
 *Documento mantenido por: Planner*  
-*Próxima acción: Awaiting Human Plan Approval (verdict: ready otorgado por Spec Validator)*
+*Estado: Active — Incremento `initial-setup` cerrado (implementado y commiteado). Próximo incremento funcional pendiente de planificación.*
