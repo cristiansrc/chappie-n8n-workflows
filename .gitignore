@@ -1,0 +1,26 @@
+# Chappie n8n Workflows - Git Ignore
+
+# n8n runtime
+.n8n/
+binaryData/
+data/
+files/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.swp
+
+# Temp
+*.tmp
+*.bak
+*~
+
+# Env local
+.env
+.env.local
