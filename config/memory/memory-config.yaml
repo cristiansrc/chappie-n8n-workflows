@@ -1,0 +1,11 @@
+memory:
+  max_messages_per_session: 20
+  session_ttl_hours: 24
+  summarization:
+    enabled: true
+    trigger_threshold: 20
+    keep_recent_count: 10
+    summary_model: "opencode/deepseek-v4-flash-free"
+  storage:
+    path: "/config/memory/sessions"
+    archive_path: "/config/memory/archive"

@@ -2,7 +2,7 @@
 
 **Incremento:** initial-setup  
 **Proyecto:** `projects/chappie-n8n-workflows/`  
-**Lifecycle status:** `awaiting-human-plan-approval`  
+**Lifecycle status:** `closed`  
 **Creado:** 2026-06-14  
 **Ultima actualizacion:** 2026-06-14 (post-remediacion F-001, F-005, F-006, F-007)  
 
@@ -10,16 +10,9 @@
 
 ## Current status
 
-**Estado del incremento:** `awaiting-human-plan-approval`
+**Estado del incremento:** `closed`
 
-La Master Spec del proyecto `chappie-n8n-workflows` fue revisada por Spec Validator (segunda ronda). **Todos los 7 findings fueron resueltos correctamente:**
-
-- **Findings globales (F-002, F-003, F-004):** Corregidos por Enterprise Architect en `integration-map.md` y `system-landscape.md`.
-- **Findings locales (F-001, F-005, F-006, F-007):** Corregidos por Planner en `master_spec.md` local.
-
-**Spec Validator Approval:** `verdict: ready` otorgado. Master Spec completa, consistente y lista para descomposición.
-
-**Transición requerida:** Aprobación humana del plan antes de avanzar a Task Decomposer.
+El incremento `initial-setup` ha sido implementado, revisado y commiteado exitosamente. Todos los artefactos del proyecto (estructura de directorios, workflows JSON de n8n, archivos YAML de configuración) están en su lugar y versionados.
 
 ---
 
@@ -187,12 +180,16 @@ Los siguientes terminos estan PROHIBIDOS en este proyecto porque no corresponden
 
 ## Next action
 
-**Acción requerida:** Awaiting Human Plan Approval
+**Acción requerida:** Incremento cerrado — sin acciones pendientes de planificación.
 
-**Estado:** Spec Validator ha otorgado `verdict: ready`. Todos los 7 findings resueltos correctamente.
+**Estado:** Implementación completada, revisada y commiteada. Pendiente de QA manual por el usuario para verificar el comportamiento runtime de los workflows en el contenedor n8n.
 
-**Transición prohibida:** No avanzar a Task Decomposer ni Executor hasta obtener `## Human Plan Approval: approved_by_user`.
+**Transición permitida:** El usuario puede iniciar un nuevo incremento funcional (ej. `voice-pipeline-integration`, `error-handler-integration`) cuando lo considere oportuno.
 
 ---
 
-## Human Plan Approval: pending
+## Human QA Approval
+
+approved_by_user: pending
+qa_notes: El usuario debe verificar manualmente que los workflows cargan correctamente en n8n, que los webhooks responden como se espera, y que la publicación en RabbitMQ funciona con los parámetros AMQP definidos (delivery_mode, headers, TTL, priority).
+qa_date: pending
