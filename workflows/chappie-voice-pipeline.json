@@ -12,7 +12,10 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
       "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-      "position": [250, 300]
+      "position": [
+        250,
+        300
+      ]
     },
     {
       "parameters": {
@@ -22,7 +25,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
-      "position": [640, 300]
+      "position": [
+        640,
+        300
+      ]
     },
     {
       "parameters": {
@@ -32,7 +38,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "id": "c3d4e5f6-a7b8-9012-cdef-123456789012",
-      "position": [1030, 300]
+      "position": [
+        1030,
+        300
+      ]
     },
     {
       "parameters": {
@@ -41,8 +50,14 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {"name": "x-goog-api-key", "value": "={{$env.GEMINI_API_KEY}}"},
-            {"name": "Content-Type", "value": "application/json"}
+            {
+              "name": "x-goog-api-key",
+              "value": "={{$env.GEMINI_API_KEY}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
           ]
         },
         "sendBody": true,
@@ -56,24 +71,33 @@
         },
         "options": {
           "timeout": 20000,
-          "retry": { "maxTries": 2, "waitInterval": 1000 }
+          "retry": {
+            "maxTries": 2,
+            "waitInterval": 1000
+          }
         }
       },
       "name": "STT Call",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "id": "d4e5f6a7-b8c9-0123-defa-234567890123",
-      "position": [1420, 300]
+      "position": [
+        1420,
+        300
+      ]
     },
     {
       "parameters": {
-        "jsCode": "const fs = require('fs');\nconst personalityYaml = fs.readFileSync('/config/personalities/chappie.yaml', 'utf8');\nconst providersYaml = fs.readFileSync('/config/providers.yaml', 'utf8');\n\n// Extraer system_prompt del YAML\nlet systemPrompt = '';\ntry {\n  const yaml = require('js-yaml');\n  const parsed = yaml.load(personalityYaml);\n  systemPrompt = parsed.system_prompt || '';\n} catch (e) {\n  // Fallback: extraer con regex\n  const lines = personalityYaml.split('\\n');\n  let inPrompt = false;\n  const promptLines = [];\n  for (const line of lines) {\n    if (line.trimStart().startsWith('system_prompt:')) {\n      inPrompt = true;\n      const afterColon = line.split(':')[1].trim();\n      if (afterColon && afterColon !== '|' && afterColon !== '>') {\n        promptLines.push(afterColon);\n        inPrompt = false;\n      }\n    } else if (inPrompt) {\n      if (line.trim() === '' || line.match(/^\\S/)) {\n        inPrompt = false;\n      } else {\n        promptLines.push(line.trim());\n      }\n    }\n  }\n  systemPrompt = promptLines.join(' ').trim();\n}\n\nreturn {\n  ...$input.first().json,\n  personality: personalityYaml,\n  system_prompt: systemPrompt,\n  providers: providersYaml\n};"
+        "jsCode": "const fs = require('fs');\nconst personalityYaml = fs.readFileSync('/config/personalities/chappie.yaml', 'utf8');\nconst providersYaml = fs.readFileSync('/config/providers.yaml', 'utf8');\n\n// Extraer system_prompt del YAML\nlet systemPrompt = '';\ntry {\n  const parsed = parseSimpleYaml(personalityYaml);\n  systemPrompt = parsed.system_prompt || '';\n} catch (e) {\n  // Fallback: extraer con regex\n  const lines = personalityYaml.split('\\n');\n  let inPrompt = false;\n  const promptLines = [];\n  for (const line of lines) {\n    if (line.trimStart().startsWith('system_prompt:')) {\n      inPrompt = true;\n      const afterColon = line.split(':')[1].trim();\n      if (afterColon && afterColon !== '|' && afterColon !== '>') {\n        promptLines.push(afterColon);\n        inPrompt = false;\n      }\n    } else if (inPrompt) {\n      if (line.trim() === '' || line.match(/^\\S/)) {\n        inPrompt = false;\n      } else {\n        promptLines.push(line.trim());\n      }\n    }\n  }\n  systemPrompt = promptLines.join(' ').trim();\n}\n\n}\n\n// Parseo manual de YAML simple (sin dependencias externas)\nfunction parseSimpleYaml(text) {\n  const result = {};\n  let currentKey = null;\n  const lines = text.split('\\n');\n  for (const line of lines) {\n    const trimmed = line.trim();\n    if (!trimmed || trimmed.startsWith('#')) continue;\n    const colonIdx = trimmed.indexOf(':');\n    if (colonIdx > 0) {\n      currentKey = trimmed.substring(0, colonIdx).trim();\n      let value = trimmed.substring(colonIdx + 1).trim();\n      if (value.startsWith('|') || value.startsWith('>')) {\n        result[currentKey] = '';\n      } else if (value.startsWith('\"') && value.endsWith('\"')) {\n        result[currentKey] = value.slice(1, -1);\n      } else if (value.startsWith(\"'\") && value.endsWith(\"'\")) {\n        result[currentKey] = value.slice(1, -1);\n      } else {\n        result[currentKey] = value;\n      }\n    } else if (trimmed.startsWith('- ') && currentKey) {\n      if (!Array.isArray(result[currentKey])) {\n        result[currentKey] = [];\n      }\n      result[currentKey].push(trimmed.substring(2));\n    }\n  }\n  return result;\n}\n\nreturn {\n  ...$input.first().json,\n  personality: personalityYaml,\n  system_prompt: systemPrompt,\n  providers: providersYaml\n};"
       },
       "name": "Load Config",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "id": "e5f6a7b8-c9d0-1234-efab-345678901234",
-      "position": [1810, 300]
+      "position": [
+        1810,
+        300
+      ]
     },
     {
       "parameters": {
@@ -83,17 +107,23 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "id": "f6a7b8c9-d0e1-2345-fabc-456789012345",
-      "position": [2200, 300]
+      "position": [
+        2200,
+        300
+      ]
     },
     {
       "parameters": {
-        "jsCode": "const data = $input.first().json;\nconst personality = data.personality;\nconst memory = data.memory;\n\n// Extraer transcripción de la respuesta de Gemini (STT)\nconst transcribedText = data.candidates?.[0]?.content?.parts?.[0]?.text || data.transcribed_text || '';\n\n// Construir contexto de memoria\nlet memoryContext = '';\nif (memory.summary) {\n  memoryContext += `Resumen de conversación anterior: ${memory.summary}\\n\\n`;\n}\nif (memory.messages && memory.messages.length > 0) {\n  const recentMessages = memory.messages.slice(-10);\n  memoryContext += recentMessages.map(m => `${m.role}: ${m.content}`).join('\\n');\n}\n\nconst systemPrompt = data.system_prompt || personality.system_prompt || personality;\nconst userMessage = transcribedText;\n\nreturn {\n  ...data,\n  system_prompt: systemPrompt,\n  memory_context: memoryContext,\n  user_message: userMessage,\n  full_prompt: `${systemPrompt}\\n\\nContexto de memoria:\\n${memoryContext}\\n\\nUsuario: ${userMessage}\\n\\nResponde con un JSON válido.`\n};"
+        "jsCode": "const data = $input.first().json;\nconst personality = data.personality;\nconst memory = data.memory;\n\n// Extraer transcripci\u00f3n de la respuesta de Gemini (STT)\nconst transcribedText = data.candidates?.[0]?.content?.parts?.[0]?.text || data.transcribed_text || '';\n\n// Construir contexto de memoria\nlet memoryContext = '';\nif (memory.summary) {\n  memoryContext += `Resumen de conversaci\u00f3n anterior: ${memory.summary}\\n\\n`;\n}\nif (memory.messages && memory.messages.length > 0) {\n  const recentMessages = memory.messages.slice(-10);\n  memoryContext += recentMessages.map(m => `${m.role}: ${m.content}`).join('\\n');\n}\n\nconst systemPrompt = data.system_prompt || personality.system_prompt || personality;\nconst userMessage = transcribedText;\n\nreturn {\n  ...data,\n  system_prompt: systemPrompt,\n  memory_context: memoryContext,\n  user_message: userMessage,\n  full_prompt: `${systemPrompt}\\n\\nContexto de memoria:\\n${memoryContext}\\n\\nUsuario: ${userMessage}\\n\\nResponde con un JSON v\u00e1lido.`\n};"
       },
       "name": "Build Prompt",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "id": "a7b8c9d0-e1f2-3456-abcd-567890123456",
-      "position": [2590, 300]
+      "position": [
+        2590,
+        300
+      ]
     },
     {
       "parameters": {
@@ -102,8 +132,14 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {"name": "Content-Type", "value": "application/json"},
-            {"name": "Authorization", "value": "Bearer {{$env.OPENCODE_API_KEY}}"}
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer {{$env.OPENCODE_API_KEY}}"
+            }
           ]
         },
         "sendBody": true,
@@ -121,24 +157,33 @@
         },
         "options": {
           "timeout": 30000,
-          "retry": { "maxTries": 2, "waitInterval": 2000 }
+          "retry": {
+            "maxTries": 2,
+            "waitInterval": 2000
+          }
         }
       },
       "name": "LLM Call",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "id": "b8c9d0e1-f2a3-4567-bcde-678901234567",
-      "position": [2980, 300]
+      "position": [
+        2980,
+        300
+      ]
     },
     {
       "parameters": {
-        "jsCode": "const llmResponse = $input.first().json;\nlet parsed;\n\ntry {\n  // Intentar parsear como JSON\n  const content = llmResponse.choices?.[0]?.message?.content || \n                  llmResponse.candidates?.[0]?.content?.parts?.[0]?.text ||\n                  JSON.stringify(llmResponse);\n  parsed = JSON.parse(content);\n} catch (e) {\n  // Extracción forzada con regex\n  const jsonMatch = JSON.stringify(llmResponse).match(/\\{[\\s\\S]*\\}/);\n  if (jsonMatch) {\n    try {\n      parsed = JSON.parse(jsonMatch[0]);\n    } catch (e2) {\n      throw new Error(`Failed to parse LLM response as JSON: ${e2.message}`);\n    }\n  } else {\n    throw new Error('No JSON found in LLM response');\n  }\n}\n\n// Validar campos requeridos\nif (!parsed.voice_response) {\n  throw new Error('LLM response missing required field: voice_response');\n}\nif (!parsed.session_id) {\n  parsed.session_id = $input.first().json.session_id;\n}\nif (!parsed.timestamp) {\n  parsed.timestamp = new Date().toISOString();\n}\n\n// Defaults\nparsed.agent_call = parsed.agent_call || { enabled: false };\nparsed.terminal_command = parsed.terminal_command || { enabled: false };\nparsed.notification = parsed.notification || { enabled: false };\nparsed.memory_update = parsed.memory_update || { save_to_memory: true, tags: [] };\n\n// Validar campos condicionales\nif (parsed.agent_call.enabled && (!parsed.agent_call.agent || !parsed.agent_call.prompt)) {\n  throw new Error('agent_call.enabled is true but agent/prompt missing');\n}\nif (parsed.terminal_command.enabled && !parsed.terminal_command.command) {\n  throw new Error('terminal_command.enabled is true but command missing');\n}\n\nreturn { ...$input.first().json, parsed_response: parsed };"
+        "jsCode": "const llmResponse = $input.first().json;\nlet parsed;\n\ntry {\n  // Intentar parsear como JSON\n  const content = llmResponse.choices?.[0]?.message?.content || \n                  llmResponse.candidates?.[0]?.content?.parts?.[0]?.text ||\n                  JSON.stringify(llmResponse);\n  parsed = JSON.parse(content);\n} catch (e) {\n  // Extracci\u00f3n forzada con regex\n  const jsonMatch = JSON.stringify(llmResponse).match(/\\{[\\s\\S]*\\}/);\n  if (jsonMatch) {\n    try {\n      parsed = JSON.parse(jsonMatch[0]);\n    } catch (e2) {\n      throw new Error(`Failed to parse LLM response as JSON: ${e2.message}`);\n    }\n  } else {\n    throw new Error('No JSON found in LLM response');\n  }\n}\n\n// Validar campos requeridos\nif (!parsed.voice_response) {\n  throw new Error('LLM response missing required field: voice_response');\n}\nif (!parsed.session_id) {\n  parsed.session_id = $input.first().json.session_id;\n}\nif (!parsed.timestamp) {\n  parsed.timestamp = new Date().toISOString();\n}\n\n// Defaults\nparsed.agent_call = parsed.agent_call || { enabled: false };\nparsed.terminal_command = parsed.terminal_command || { enabled: false };\nparsed.notification = parsed.notification || { enabled: false };\nparsed.memory_update = parsed.memory_update || { save_to_memory: true, tags: [] };\n\n// Validar campos condicionales\nif (parsed.agent_call.enabled && (!parsed.agent_call.agent || !parsed.agent_call.prompt)) {\n  throw new Error('agent_call.enabled is true but agent/prompt missing');\n}\nif (parsed.terminal_command.enabled && !parsed.terminal_command.command) {\n  throw new Error('terminal_command.enabled is true but command missing');\n}\n\nreturn { ...$input.first().json, parsed_response: parsed };"
       },
       "name": "Parse Response",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "id": "c9d0e1f2-a3b4-5678-cdef-789012345678",
-      "position": [3370, 300]
+      "position": [
+        3370,
+        300
+      ]
     },
     {
       "parameters": {
@@ -152,7 +197,10 @@
           "contentType": "application/json",
           "headers": {
             "parameters": [
-              {"name": "X-Idempotency-Key", "value": "={{$json.session_id}}:{{$json.timestamp}}"}
+              {
+                "name": "X-Idempotency-Key",
+                "value": "={{$json.session_id}}:{{$json.timestamp}}"
+              }
             ]
           },
           "expiration": "60000",
@@ -163,7 +211,10 @@
       "type": "n8n-nodes-base.rabbitmq",
       "typeVersion": 1,
       "id": "d0e1f2a3-b4c5-6789-defa-890123456789",
-      "position": [3760, 300],
+      "position": [
+        3760,
+        300
+      ],
       "credentials": {
         "rabbitmq": {
           "hostname": "chappie-rabbitmq",
@@ -176,13 +227,16 @@
     },
     {
       "parameters": {
-        "jsCode": "const data = $input.first().json;\nconst sessionId = data.session_id;\nconst parsedResponse = data.parsed_response;\n\nconst fs = require('fs');\nconst path = `/config/memory/sessions/${sessionId}.json`;\n\nlet memory;\nif (fs.existsSync(path)) {\n  memory = JSON.parse(fs.readFileSync(path, 'utf8'));\n} else {\n  memory = {\n    session_id: sessionId,\n    created_at: new Date().toISOString(),\n    messages: [],\n    summary: null\n  };\n}\n\n// Añadir mensaje del usuario\nmemory.messages.push({\n  role: 'user',\n  content: data.user_message || '(audio)',\n  timestamp: data.timestamp || new Date().toISOString()\n});\n\n// Añadir respuesta\nmemory.messages.push({\n  role: 'assistant',\n  content: parsedResponse.voice_response,\n  timestamp: new Date().toISOString()\n});\n\nmemory.last_activity = new Date().toISOString();\n\n// Leer max_messages_per_session desde memory-config.yaml\nlet maxMessagesPerSession = 20;\nconst configPath = '/config/memory/memory-config.yaml';\ntry {\n  if (fs.existsSync(configPath)) {\n    const configContent = fs.readFileSync(configPath, 'utf8');\n    try {\n      const yaml = require('js-yaml');\n      const config = yaml.load(configContent);\n      if (config?.memory?.max_messages_per_session) {\n        maxMessagesPerSession = config.memory.max_messages_per_session;\n      }\n    } catch (e) {\n      // Fallback regex\n      const match = configContent.match(/max_messages_per_session\\s*:\\s*(\\d+)/);\n      if (match) {\n        maxMessagesPerSession = parseInt(match[1], 10);\n      }\n    }\n  }\n} catch (e) {\n  // Usar default\n}\n\nif (memory.messages.length > maxMessagesPerSession) {\n  const excessCount = memory.messages.length - maxMessagesPerSession + Math.floor(maxMessagesPerSession / 2);\n  const toSummarize = memory.messages.splice(0, excessCount);\n  memory.needs_summarization = true;\n  memory.pending_summary_messages = toSummarize;\n}\n\n// Guardar\nfs.writeFileSync(path, JSON.stringify(memory, null, 2));\n\nreturn {\n  ...data,\n  memory_saved: true,\n  messages_count: memory.messages.length\n};"
+        "jsCode": "const data = $input.first().json;\nconst sessionId = data.session_id;\nconst parsedResponse = data.parsed_response;\n\nconst fs = require('fs');\nconst path = `/config/memory/sessions/${sessionId}.json`;\n\nlet memory;\nif (fs.existsSync(path)) {\n  memory = JSON.parse(fs.readFileSync(path, 'utf8'));\n} else {\n  memory = {\n    session_id: sessionId,\n    created_at: new Date().toISOString(),\n    messages: [],\n    summary: null\n  };\n}\n\n// A\u00f1adir mensaje del usuario\nmemory.messages.push({\n  role: 'user',\n  content: data.user_message || '(audio)',\n  timestamp: data.timestamp || new Date().toISOString()\n});\n\n// A\u00f1adir respuesta\nmemory.messages.push({\n  role: 'assistant',\n  content: parsedResponse.voice_response,\n  timestamp: new Date().toISOString()\n});\n\nmemory.last_activity = new Date().toISOString();\n\n// Leer max_messages_per_session desde memory-config.yaml\nlet maxMessagesPerSession = 20;\nconst configPath = '/config/memory/memory-config.yaml';\ntry {\n  if (fs.existsSync(configPath)) {\n    const configContent = fs.readFileSync(configPath, 'utf8');\n    try {\n      const config = parseSimpleYaml(configContent);\n      if (config.max_messages_per_session) {\n        maxMessagesPerSession = parseInt(config.max_messages_per_session, 10);\n      }\n    } catch (e) {\n      // Fallback regex\n      const match = configContent.match(/max_messages_per_session\\s*:\\s*(\\d+)/);\n      if (match) {\n        maxMessagesPerSession = parseInt(match[1], 10);\n      }\n    }\n  }\n} catch (e) {\n  // Usar default\n}\n\nif (memory.messages.length > maxMessagesPerSession) {\n  const excessCount = memory.messages.length - maxMessagesPerSession + Math.floor(maxMessagesPerSession / 2);\n  const toSummarize = memory.messages.splice(0, excessCount);\n  memory.needs_summarization = true;\n  memory.pending_summary_messages = toSummarize;\n}\n\n// Guardar\nfs.writeFileSync(path, JSON.stringify(memory, null, 2));\n\n// Parseo manual de YAML simple (sin dependencias externas)\nfunction parseSimpleYaml(text) {\n  const result = {};\n  let currentKey = null;\n  const lines = text.split('\\n');\n  for (const line of lines) {\n    const trimmed = line.trim();\n    if (!trimmed || trimmed.startsWith('#')) continue;\n    const colonIdx = trimmed.indexOf(':');\n    if (colonIdx > 0) {\n      currentKey = trimmed.substring(0, colonIdx).trim();\n      let value = trimmed.substring(colonIdx + 1).trim();\n      if (value.startsWith('|') || value.startsWith('>')) {\n        result[currentKey] = '';\n      } else if (value.startsWith('\"') && value.endsWith('\"')) {\n        result[currentKey] = value.slice(1, -1);\n      } else if (value.startsWith(\"'\") && value.endsWith(\"'\")) {\n        result[currentKey] = value.slice(1, -1);\n      } else {\n        result[currentKey] = value;\n      }\n    } else if (trimmed.startsWith('- ') && currentKey) {\n      if (!Array.isArray(result[currentKey])) {\n        result[currentKey] = [];\n      }\n      result[currentKey].push(trimmed.substring(2));\n    }\n  }\n  return result;\n}\n\nreturn {\n  ...data,\n  memory_saved: true,\n  messages_count: memory.messages.length\n};"
       },
       "name": "Update Memory",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "id": "e1f2a3b4-c5d6-7890-efab-901234567890",
-      "position": [4150, 300]
+      "position": [
+        4150,
+        300
+      ]
     },
     {
       "parameters": {
@@ -196,17 +250,23 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "id": "f2a3b4c5-d6e7-8901-fabc-012345678901",
-      "position": [4540, 300]
+      "position": [
+        4540,
+        300
+      ]
     },
     {
       "parameters": {
-        "jsCode": "const errorData = $input.first().json;\n\n// Construir notificación de error para publicar en chappie.notifications\nconst notification = {\n  timestamp: new Date().toISOString(),\n  title: 'Chappie - Error de Pipeline',\n  message: `Error en ${errorData.node || 'desconocido'}: ${errorData.message || errorData.error || 'Error desconocido'}`,\n  urgency: 'critical',\n  actions: [{ key: 'dismiss', label: 'Cerrar' }],\n  category: 'error'\n};\n\nreturn notification;"
+        "jsCode": "const errorData = $input.first().json;\n\n// Construir notificaci\u00f3n de error para publicar en chappie.notifications\nconst notification = {\n  timestamp: new Date().toISOString(),\n  title: 'Chappie - Error de Pipeline',\n  message: `Error en ${errorData.node || 'desconocido'}: ${errorData.message || errorData.error || 'Error desconocido'}`,\n  urgency: 'critical',\n  actions: [{ key: 'dismiss', label: 'Cerrar' }],\n  category: 'error'\n};\n\nreturn notification;"
       },
       "name": "Error Handler",
       "type": "n8n-nodes-base.errorTrigger",
       "typeVersion": 1,
       "id": "a3b4c5d6-e7f8-9012-abcd-123456789012",
-      "position": [3760, 600]
+      "position": [
+        3760,
+        600
+      ]
     },
     {
       "parameters": {
@@ -220,7 +280,10 @@
           "contentType": "application/json",
           "headers": {
             "parameters": [
-              {"name": "X-Idempotency-Key", "value": "={{$json.timestamp}}"}
+              {
+                "name": "X-Idempotency-Key",
+                "value": "={{$json.timestamp}}"
+              }
             ]
           },
           "expiration": "120000",
@@ -231,7 +294,10 @@
       "type": "n8n-nodes-base.rabbitmq",
       "typeVersion": 1,
       "id": "b4c5d6e7-f8a9-0123-bcde-234567890123",
-      "position": [4150, 600],
+      "position": [
+        4150,
+        600
+      ],
       "credentials": {
         "rabbitmq": {
           "hostname": "chappie-rabbitmq",
@@ -409,7 +475,9 @@
       ]
     }
   },
-  "settings": { "executionOrder": "v1" },
+  "settings": {
+    "executionOrder": "v1"
+  },
   "staticData": null,
   "pinData": {}
 }

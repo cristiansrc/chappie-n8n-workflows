@@ -11,7 +11,10 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
       "id": "11111111-1111-4111-8111-111111111111",
-      "position": [250, 300]
+      "position": [
+        250,
+        300
+      ]
     },
     {
       "parameters": {
@@ -21,27 +24,36 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "id": "22222222-2222-4222-8222-222222222222",
-      "position": [640, 300]
+      "position": [
+        640,
+        300
+      ]
     },
     {
       "parameters": {
-        "jsCode": "const fs = require('fs');\nconst personalityYaml = fs.readFileSync('/config/personalities/chappie.yaml', 'utf8');\n\n// Extraer system_prompt del YAML\nlet systemPrompt = '';\ntry {\n  const yaml = require('js-yaml');\n  const parsed = yaml.load(personalityYaml);\n  systemPrompt = parsed.system_prompt || '';\n} catch (e) {\n  // Fallback: extraer con regex\n  const lines = personalityYaml.split('\\n');\n  let inPrompt = false;\n  const promptLines = [];\n  for (const line of lines) {\n    if (line.trimStart().startsWith('system_prompt:')) {\n      inPrompt = true;\n      const afterColon = line.split(':')[1].trim();\n      if (afterColon && afterColon !== '|' && afterColon !== '>') {\n        promptLines.push(afterColon);\n        inPrompt = false;\n      }\n    } else if (inPrompt) {\n      if (line.trim() === '' || line.match(/^\\S/)) {\n        inPrompt = false;\n      } else {\n        promptLines.push(line.trim());\n      }\n    }\n  }\n  systemPrompt = promptLines.join(' ').trim();\n}\n\nreturn {\n  ...$input.first().json,\n  personality: personalityYaml,\n  system_prompt: systemPrompt\n};"
+        "jsCode": "const fs = require('fs');\nconst personalityYaml = fs.readFileSync('/config/personalities/chappie.yaml', 'utf8');\n\n// Extraer system_prompt del YAML\nlet systemPrompt = '';\ntry {\n  const parsed = parseSimpleYaml(personalityYaml);\n  systemPrompt = parsed.system_prompt || '';\n} catch (e) {\n  // Fallback: extraer con regex\n  const lines = personalityYaml.split('\\n');\n  let inPrompt = false;\n  const promptLines = [];\n  for (const line of lines) {\n    if (line.trimStart().startsWith('system_prompt:')) {\n      inPrompt = true;\n      const afterColon = line.split(':')[1].trim();\n      if (afterColon && afterColon !== '|' && afterColon !== '>') {\n        promptLines.push(afterColon);\n        inPrompt = false;\n      }\n    } else if (inPrompt) {\n      if (line.trim() === '' || line.match(/^\\S/)) {\n        inPrompt = false;\n      } else {\n        promptLines.push(line.trim());\n      }\n    }\n  }\n  systemPrompt = promptLines.join(' ').trim();\n}\n\n// Parseo manual de YAML simple (sin dependencias externas)\nfunction parseSimpleYaml(text) {\n  const result = {};\n  let currentKey = null;\n  const lines = text.split('\\n');\n  for (const line of lines) {\n    const trimmed = line.trim();\n    if (!trimmed || trimmed.startsWith('#')) continue;\n    const colonIdx = trimmed.indexOf(':');\n    if (colonIdx > 0) {\n      currentKey = trimmed.substring(0, colonIdx).trim();\n      let value = trimmed.substring(colonIdx + 1).trim();\n      if (value.startsWith('|') || value.startsWith('>')) {\n        result[currentKey] = '';\n      } else if (value.startsWith('\"') && value.endsWith('\"')) {\n        result[currentKey] = value.slice(1, -1);\n      } else if (value.startsWith(\"'\") && value.endsWith(\"'\")) {\n        result[currentKey] = value.slice(1, -1);\n      } else {\n        result[currentKey] = value;\n      }\n    } else if (trimmed.startsWith('- ') && currentKey) {\n      if (!Array.isArray(result[currentKey])) {\n        result[currentKey] = [];\n      }\n      result[currentKey].push(trimmed.substring(2));\n    }\n  }\n  return result;\n}\n\nreturn {\n  ...$input.first().json,\n  personality: personalityYaml,\n  system_prompt: systemPrompt\n};"
       },
       "name": "Load Config",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "id": "33333333-3333-4333-8333-333333333333",
-      "position": [1030, 300]
+      "position": [
+        1030,
+        300
+      ]
     },
     {
       "parameters": {
-        "jsCode": "const data = $input.first().json;\nconst personality = data.personality;\n\nconst errorPrompt = `\nHa ocurrido un error al intentar ejecutar tu respuesta anterior.\n\nPetición original del usuario: \"${data.original_request}\"\nError detectado: ${data.error}\n${data.context ? `Contexto adicional: ${data.context}` : ''}\n\nGenera una nueva voice_response que:\n1. Informe al usuario que hubo un problema (sin entrar en detalles técnicos)\n2. Sugiera una alternativa o pida clarificación\n3. Mantenga la personalidad de Chappie (tono curioso, entusiasta, expresión \"flow\")\n4. Sea concisa (máximo 3 oraciones)\n\nResponde SOLO con un JSON: { \"voice_response\": \"tu respuesta aquí\" }\n`;\n\nreturn {\n  ...data,\n  system_prompt: personality,\n  user_message: errorPrompt\n};"
+        "jsCode": "const data = $input.first().json;\nconst personality = data.personality;\n\nconst errorPrompt = `\nHa ocurrido un error al intentar ejecutar tu respuesta anterior.\n\nPetici\u00f3n original del usuario: \"${data.original_request}\"\nError detectado: ${data.error}\n${data.context ? `Contexto adicional: ${data.context}` : ''}\n\nGenera una nueva voice_response que:\n1. Informe al usuario que hubo un problema (sin entrar en detalles t\u00e9cnicos)\n2. Sugiera una alternativa o pida clarificaci\u00f3n\n3. Mantenga la personalidad de Chappie (tono curioso, entusiasta, expresi\u00f3n \"flow\")\n4. Sea concisa (m\u00e1ximo 3 oraciones)\n\nResponde SOLO con un JSON: { \"voice_response\": \"tu respuesta aqu\u00ed\" }\n`;\n\nreturn {\n  ...data,\n  system_prompt: personality,\n  user_message: errorPrompt\n};"
       },
       "name": "Build Error Prompt",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "id": "44444444-4444-4444-8444-444444444444",
-      "position": [1420, 300]
+      "position": [
+        1420,
+        300
+      ]
     },
     {
       "parameters": {
@@ -50,8 +62,14 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {"name": "Content-Type", "value": "application/json"},
-            {"name": "Authorization", "value": "Bearer {{$env.OPENCODE_API_KEY}}"}
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer {{$env.OPENCODE_API_KEY}}"
+            }
           ]
         },
         "sendBody": true,
@@ -69,24 +87,33 @@
         },
         "options": {
           "timeout": 15000,
-          "retry": { "maxTries": 1, "waitInterval": 1000 }
+          "retry": {
+            "maxTries": 1,
+            "waitInterval": 1000
+          }
         }
       },
       "name": "LLM Call",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "id": "55555555-5555-4555-8555-555555555555",
-      "position": [1810, 300]
+      "position": [
+        1810,
+        300
+      ]
     },
     {
       "parameters": {
-        "jsCode": "const llmResponse = $input.first().json;\nlet voiceResponse;\n\ntry {\n  const content = llmResponse.choices?.[0]?.message?.content || \n                  llmResponse.candidates?.[0]?.content?.parts?.[0]?.text;\n  const parsed = JSON.parse(content);\n  voiceResponse = parsed.voice_response;\n} catch (e) {\n  // Extracción forzada\n  const match = JSON.stringify(llmResponse).match(/\"voice_response\"\\s*:\\s*\"([^\"]+)\"/);\n  if (match) {\n    voiceResponse = match[1];\n  } else {\n    // Último recurso: usar texto plano\n    voiceResponse = (llmResponse.choices?.[0]?.message?.content || \n                     'Lo siento Creador, Chappie tuvo un problema. ¿Podrías intentarlo de nuevo? ¡Flow!')\n                    .replace(/[{}\\[\\]\"]/g, '').substring(0, 500);\n  }\n}\n\nif (!voiceResponse || voiceResponse.trim() === '') {\n  voiceResponse = 'Lo siento Creador, Chappie tuvo un problema. ¿Podrías intentarlo de nuevo? ¡Flow!';\n}\n\nconst data = $input.first().json;\n\nreturn {\n  session_id: data.session_id,\n  timestamp: new Date().toISOString(),\n  text: voiceResponse,\n  priority: 'high',\n  ducking: true,\n  show_text: true\n};"
+        "jsCode": "const llmResponse = $input.first().json;\nlet voiceResponse;\n\ntry {\n  const content = llmResponse.choices?.[0]?.message?.content || \n                  llmResponse.candidates?.[0]?.content?.parts?.[0]?.text;\n  const parsed = JSON.parse(content);\n  voiceResponse = parsed.voice_response;\n} catch (e) {\n  // Extracci\u00f3n forzada\n  const match = JSON.stringify(llmResponse).match(/\"voice_response\"\\s*:\\s*\"([^\"]+)\"/);\n  if (match) {\n    voiceResponse = match[1];\n  } else {\n    // \u00daltimo recurso: usar texto plano\n    voiceResponse = (llmResponse.choices?.[0]?.message?.content || \n                     'Lo siento Creador, Chappie tuvo un problema. \u00bfPodr\u00edas intentarlo de nuevo? \u00a1Flow!')\n                    .replace(/[{}\\[\\]\"]/g, '').substring(0, 500);\n  }\n}\n\nif (!voiceResponse || voiceResponse.trim() === '') {\n  voiceResponse = 'Lo siento Creador, Chappie tuvo un problema. \u00bfPodr\u00edas intentarlo de nuevo? \u00a1Flow!';\n}\n\nconst data = $input.first().json;\n\nreturn {\n  session_id: data.session_id,\n  timestamp: new Date().toISOString(),\n  text: voiceResponse,\n  priority: 'high',\n  ducking: true,\n  show_text: true\n};"
       },
       "name": "Parse Response",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "id": "66666666-6666-4666-8666-666666666666",
-      "position": [2200, 300]
+      "position": [
+        2200,
+        300
+      ]
     },
     {
       "parameters": {
@@ -98,7 +125,10 @@
           "contentType": "application/json",
           "headers": {
             "parameters": [
-              {"name": "X-Idempotency-Key", "value": "={{$json.session_id}}:{{$json.timestamp}}"}
+              {
+                "name": "X-Idempotency-Key",
+                "value": "={{$json.session_id}}:{{$json.timestamp}}"
+              }
             ]
           },
           "expiration": "30000",
@@ -109,7 +139,10 @@
       "type": "n8n-nodes-base.rabbitmq",
       "typeVersion": 1,
       "id": "77777777-7777-4777-8777-777777777777",
-      "position": [2980, 300],
+      "position": [
+        2980,
+        300
+      ],
       "credentials": {
         "rabbitmq": {
           "hostname": "chappie-rabbitmq",
@@ -132,17 +165,23 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "id": "88888888-8888-4888-8888-888888888888",
-      "position": [3370, 300]
+      "position": [
+        3370,
+        300
+      ]
     },
     {
       "parameters": {
-        "jsCode": "const errorData = $input.first().json;\n\n// Construir notificación de error para publicar en chappie.notifications\nconst notification = {\n  timestamp: new Date().toISOString(),\n  title: 'Chappie - Error de Pipeline',\n  message: `Error en Error Handler: ${errorData.message || errorData.error || 'Error desconocido'}`,\n  urgency: 'critical',\n  actions: [{ key: 'dismiss', label: 'Cerrar' }],\n  category: 'error'\n};\n\nreturn notification;"
+        "jsCode": "const errorData = $input.first().json;\n\n// Construir notificaci\u00f3n de error para publicar en chappie.notifications\nconst notification = {\n  timestamp: new Date().toISOString(),\n  title: 'Chappie - Error de Pipeline',\n  message: `Error en Error Handler: ${errorData.message || errorData.error || 'Error desconocido'}`,\n  urgency: 'critical',\n  actions: [{ key: 'dismiss', label: 'Cerrar' }],\n  category: 'error'\n};\n\nreturn notification;"
       },
       "name": "Error Handler",
       "type": "n8n-nodes-base.errorTrigger",
       "typeVersion": 1,
       "id": "99999999-9999-4999-8999-999999999999",
-      "position": [1810, 600]
+      "position": [
+        1810,
+        600
+      ]
     },
     {
       "parameters": {
@@ -162,7 +201,10 @@
       "type": "n8n-nodes-base.rabbitmq",
       "typeVersion": 1,
       "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
-      "position": [2200, 600],
+      "position": [
+        2200,
+        600
+      ],
       "credentials": {
         "rabbitmq": {
           "hostname": "chappie-rabbitmq",
@@ -287,7 +329,9 @@
       ]
     }
   },
-  "settings": { "executionOrder": "v1" },
+  "settings": {
+    "executionOrder": "v1"
+  },
   "staticData": null,
   "pinData": {}
 }
